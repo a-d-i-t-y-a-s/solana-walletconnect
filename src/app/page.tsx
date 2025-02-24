@@ -1,101 +1,132 @@
-import Image from "next/image";
+"use client"
+import {
+  DynamicContextProvider,
+  DynamicWidget,
+} from "@dynamic-labs/sdk-react-core";
+import { DynamicWagmiConnector } from "@dynamic-labs/wagmi-connector";
+import { createConfig, WagmiProvider } from "wagmi";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { http } from "viem";
+// import { mainnet } from "viem/chains";
+import { mainnet, arbitrum, avalanche, base, optimism, polygon, solana } from '@reown/appkit/networks'
+import { BitcoinWalletConnectors } from "@dynamic-labs/bitcoin";
+import { EthereumWalletConnectors } from "@dynamic-labs/ethereum";
+import { SolanaWalletConnectors } from "@dynamic-labs/solana";
+import { SolanaWalletConnectorsWithConfig } from '@dynamic-labs/solana';
+import { EthereumWalletConnectorsWithConfig } from '@dynamic-labs/ethereum';
+import { WalletConnectWalletAdapter } from '@walletconnect/solana-adapter';
+import { SolanaContext } from "./walletConnectAdapter";
+import { SolanaWalletConnectProvider } from "./solanaWalletConnectProvider";
+import React, { useEffect, useState } from "react";
+import UniversalProvider from "@walletconnect/universal-provider";
+
+// const config = createConfig({
+//   chains: [mainnet, base],
+//   multiInjectedProviderDiscovery: false,
+//   transports: {
+//     [mainnet.id]: http(),
+//     [base.id]: http(),
+//   },
+// });
+
+
+const queryClient = new QueryClient();
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [solanaConnector, setSolanaConnector] = useState<any>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  useEffect(() => {
+    async function initProvider() {
+      // Initialize the WalletConnect UniversalProvider.
+      const universalProvider = await UniversalProvider.init({
+        projectId: "YOUR_PROJECT_ID", // your WalletConnect/Reown project ID
+        metadata: {
+          name: "My Solana App",
+          description: "My Solana app using WalletConnect",
+          url: "https://example.com",
+          icons: ["https://example.com/icon.png"],
+        },
+      });
+
+      // Instantiate your custom Solana provider.
+      const solanaProviderInstance = new SolanaWalletConnectProvider({
+        provider: universalProvider,
+        chains: [
+          // Supply your CAIP chain objects here. For example:
+          { caipNetworkId: "solana:mainnet-beta", name: "Solana Mainnet Beta" },
+        ],
+        getActiveChain: () => {
+          // For simplicity, always return the mainnet object.
+          return { caipNetworkId: "solana:mainnet-beta", name: "Solana Mainnet Beta" };
+        },
+      });
+
+      // Wrap your custom provider in a Dynamic connector.
+      const connector = SolanaWalletConnectorsWithConfig({
+        provider: solanaProviderInstance,
+        commitment: "confirmed",
+        httpHeaders: {
+          "X-Requested-With": "XMLHttpRequest",
+        },
+      });
+
+      setSolanaConnector(connector);
+    }
+
+    initProvider();
+  }, []);
+
+  // Until our connector is ready, render a loading indicator.
+  if (!solanaConnector) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <DynamicContextProvider
+      settings={{
+        environmentId: "YOUR_DYNAMIC_ENVIRONMENT_ID", // your Dynamic environment ID
+        // Use only the Solana connector so that the connect modal uses your custom Solana provider.
+        walletConnectors: [solanaConnector],
+      }}
+    >
+      <QueryClientProvider client={queryClient}>
+        <div className="flex justify-center items-center min-h-screen">
+          <DynamicWidget />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      </QueryClientProvider>
+    </DynamicContextProvider>
   );
+
+  // return (
+  //   <SolanaContext> 
+  //     <DynamicContextProvider
+  //       settings={{
+  //         environmentId: "49fe48ee-7e43-4a46-9027-afba47426527",
+  //         // Include the Solana connector in the walletConnectors array.
+  //         walletConnectors: [
+  //           SolanaWalletConnectorsWithConfig({
+  //             commitment: 'confirmed',
+  //             httpHeaders: {
+  //               'X-Requested-With': 'XMLHttpRequest',
+  //             },
+  //           }),
+  //           //EthereumWalletConnectors,
+  //           //BitcoinWalletConnectors,
+  //         ],
+  //         // Optionally, if your Dynamic Dashboard expects a non‑EVM chain,
+  //         // you might use a prop like solNetworks or similar as documented.
+  //       }}
+  //     >
+  //       <WagmiProvider config={config}>
+  //         <QueryClientProvider client={queryClient}>
+  //           <DynamicWagmiConnector>
+  //             <div className="flex justify-center items-center min-h-screen">
+  //               <DynamicWidget />
+  //             </div>
+  //           </DynamicWagmiConnector>
+  //         </QueryClientProvider>
+  //       </WagmiProvider>
+  //     </DynamicContextProvider>
+  //   </SolanaContext>
+  // );
 }
