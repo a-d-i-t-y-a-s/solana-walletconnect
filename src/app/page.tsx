@@ -15,10 +15,7 @@ import { SolanaWalletConnectors } from "@dynamic-labs/solana";
 import { SolanaWalletConnectorsWithConfig } from '@dynamic-labs/solana';
 import { EthereumWalletConnectorsWithConfig } from '@dynamic-labs/ethereum';
 import { WalletConnectWalletAdapter } from '@walletconnect/solana-adapter';
-import { SolanaContext } from "./walletConnectAdapter";
-import { SolanaWalletConnectProvider } from "./solanaWalletConnectProvider";
 import React, { useEffect, useState } from "react";
-import UniversalProvider from "@walletconnect/universal-provider";
 import AppKitPage from "./appKit";
 
 
@@ -41,12 +38,7 @@ export default function Home() {
       //     environmentId: "49fe48ee-7e43-4a46-9027-afba47426527",
       //     // Include the Solana connector in the walletConnectors array.
       //     walletConnectors: [
-      //       SolanaWalletConnectorsWithConfig({
-      //         commitment: 'confirmed',
-      //         httpHeaders: {
-      //           'X-Requested-With': 'XMLHttpRequest',
-      //         },
-      //       }),
+      //       //SolanaWalletConnectors,
       //       //EthereumWalletConnectors,
       //       //BitcoinWalletConnectors,
       //     ],
