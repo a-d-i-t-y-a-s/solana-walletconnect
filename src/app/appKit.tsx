@@ -172,7 +172,7 @@ const AppKitPage: React.FC = () => {
         try {
           await eip155Provider.request({
             method: 'personal_sign',
-            params: ['Hello from AppKit!', accountState.address]
+            params: ['Hello from Solana Definitive AppKit!', accountState.address]
           })
         } catch (error) {
           console.error('Error signing message:', error)
@@ -184,9 +184,6 @@ const AppKitPage: React.FC = () => {
   return (
     <div className="max-w-screen-xl mx-auto p-8 flex flex-col items-center gap-6">
       <h1 className="text-center text-gray-600 text-2xl my-5">AppKit HTML Example</h1>
-      <div className="flex flex-col md:flex-row items-center justify-center gap-2">
-        <img id="reown-logo" className="w-32" alt="Reown Logo" src="/reown-logo.png" />
-      </div>
       <div className="flex flex-wrap items-center justify-center gap-2">
         <button id="toggle-theme" className="inline-flex text-sm p-4 rounded-lg bg-blue-100 text-blue-600 hover:rounded-xl active:shadow-inner">
           Toggle Theme
